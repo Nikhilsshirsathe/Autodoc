@@ -1,0 +1,40 @@
+# ── FastAPI stack ─────────────────────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.18          # Required for file uploads in FastAPI
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# ── Supabase ──────────────────────────────────────────────────────────────────
+supabase==2.10.0                   # Supabase Python client (storage + auth + db)
+httpx>=0.27.0,<0.29.0             # Required by supabase client
+
+# ── Database (optional SQLAlchemy for complex queries / Alembic migrations) ───
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10           # PostgreSQL adapter for SQLAlchemy
+alembic==1.14.0                    # Database migrations
+
+# ── Document parsing — Docling ────────────────────────────────────────────────
+docling==2.14.0                    # IBM Docling: PDF, DOCX, PPTX parsing + table extraction
+docling-core>=2.12.1,<3.0.0        # Docling core models
+
+# ── OCR fallback ──────────────────────────────────────────────────────────────
+pytesseract==0.3.13                # Python wrapper for Tesseract OCR
+Pillow>=10.0.0,<12.0.0            # Image processing (required by pytesseract)
+pypdf==5.1.0                       # Pure-Python PDF text extraction fallback
+
+# ── OpenAI (for embeddings + LLM extraction) ─────────────────────────────────
+openai==1.57.2
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1               # Load .env files
+tenacity==9.0.0                    # Retry logic for API calls
+structlog==24.4.0                  # Structured logging (optional)
+
+# ── Task queue (optional — only needed if USE_CELERY=true) ───────────────────
+# celery[redis]==5.4.0
+# redis==5.2.1
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.3.4
+pytest-asyncio==0.24.0

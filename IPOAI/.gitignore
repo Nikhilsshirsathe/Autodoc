@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.env.*
+!.env.example
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Storage (local)
+storage/uploads/*
+storage/generated/*
+!storage/uploads/.gitkeep
+!storage/generated/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+.coverage
+coverage/
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Environment
+.venv/
+venv/
+env/
+
+# Database
+*.db
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+*.bak
+*.orig
