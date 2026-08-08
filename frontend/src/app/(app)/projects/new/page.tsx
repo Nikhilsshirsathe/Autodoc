@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
 import { createProject } from "@/lib/data/projects";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+import { API_URL } from "@/lib/api";
 
 type Stage = "upload" | "extracting" | "review" | "creating";
 

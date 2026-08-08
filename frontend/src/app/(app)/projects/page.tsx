@@ -25,7 +25,7 @@ import { useProject } from "@/context/project-context";
 import { linkDocToProject, unlinkDoc, getDocIdsForProject, getProjDocMapping } from "@/lib/project-doc-map";
 import { toast } from "sonner";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+import { API_URL } from "@/lib/api";
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {

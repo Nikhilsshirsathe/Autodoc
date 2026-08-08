@@ -13,7 +13,7 @@ import { useProject } from "@/context/project-context";
 import { getDocIdsForProject } from "@/lib/project-doc-map";
 import { cn } from "@/lib/utils";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+import { API_URL } from "@/lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

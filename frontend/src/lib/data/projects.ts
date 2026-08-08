@@ -4,7 +4,7 @@
  * Dummy data has been removed — all data comes from the backend API.
  */
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+import { API_URL } from "@/lib/api";
 
 export interface TeamMember {
   id: string;

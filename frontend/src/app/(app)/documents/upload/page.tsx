@@ -291,7 +291,7 @@ export default function DocumentUploadPage() {
         <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm">
           <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
           <span className="text-red-700 dark:text-red-400 flex-1">
-            Cannot reach the backend at <code className="text-xs bg-red-100 dark:bg-red-900/40 px-1 rounded">http://localhost:8000</code>.
+            Cannot reach the backend at <code className="text-xs bg-red-100 dark:bg-red-900/40 px-1 rounded">{process.env.NEXT_PUBLIC_API_URL ?? "backend"}</code>.
             Make sure the FastAPI server is running.
           </span>
           <Button variant="outline" size="sm" className="h-7 text-xs shrink-0" onClick={fetchDocs}>
