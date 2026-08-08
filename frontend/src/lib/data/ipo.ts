@@ -5,7 +5,7 @@ import type {
   GenerationSummary,
 } from "@/types/ipo";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 const BASE = `${API_URL}/api/v1/ipo`;
 
 async function handleResponse<T>(res: Response): Promise<T> {

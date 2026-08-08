@@ -14,7 +14,7 @@ import { useAuth } from "@/context/auth-context";
 import { useProject } from "@/context/project-context";
 import { getDocIdsForProject } from "@/lib/project-doc-map";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 
 // ── Status config ──────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
