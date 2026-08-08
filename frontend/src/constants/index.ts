@@ -100,8 +100,6 @@ export const REQUIRED_DOCUMENTS = [
   "Statutory Audit Reports",
 ];
 
-import type { Permission } from "@/context/auth-context";
-
 export interface NavItem {
   label: string;
   href: string;
