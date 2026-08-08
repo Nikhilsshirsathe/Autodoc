@@ -1,0 +1,24 @@
+id: company-history
+section_name: Company History
+display_order: 10
+description: Key milestones, corporate history, and events in the company's evolution.
+knowledge_mapping:
+- category: company
+  fields:
+  - incorporation_date
+  - key_milestones
+  - major_events
+  - corporate_restructuring
+validation_rules:
+- field: company.incorporation_date
+  required: true
+  description: Date of incorporation
+- field: company.key_milestones
+  required: false
+  description: Key milestones
+prompt_template_path: prompts/company-history.md
+output_format: markdown
+dependencies:
+- company-overview
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018

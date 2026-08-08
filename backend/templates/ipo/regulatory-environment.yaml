@@ -1,0 +1,27 @@
+id: regulatory-environment
+section_name: Regulatory Environment
+display_order: 14
+description: Key regulations, licenses, and regulatory compliance affecting the business.
+knowledge_mapping:
+- category: compliance
+  fields:
+  - key_regulations
+  - licenses
+  - regulatory_bodies
+  - compliance_status
+- category: industry
+  fields:
+  - regulatory_framework
+validation_rules:
+- field: compliance.licenses
+  required: true
+  description: Key licenses and permits
+- field: compliance.key_regulations
+  required: false
+  description: Applicable regulations
+prompt_template_path: prompts/regulatory-environment.md
+output_format: markdown
+dependencies:
+- industry-overview
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018

@@ -1,0 +1,37 @@
+id: mda
+section_name: Management Discussion & Analysis
+display_order: 15
+description: Management perspective on financial results, business performance, outlook,
+  and key risks.
+knowledge_mapping:
+- category: financials
+  fields:
+  - revenue
+  - net_profit
+  - ebitda
+  - ebitda_margin
+  - revenue_growth
+  - financial_year
+- category: operations
+  fields:
+  - operational_highlights
+- category: risk
+  fields:
+  - business_risks
+  - financial_risks
+validation_rules:
+- field: financials.revenue
+  required: true
+  description: Revenue figures
+- field: financials.net_profit
+  required: true
+  description: Net profit/loss
+- field: financials.ebitda
+  required: false
+  description: EBITDA
+prompt_template_path: prompts/mda.md
+output_format: markdown
+dependencies:
+- financial-information
+estimated_pages: 6
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A(18)

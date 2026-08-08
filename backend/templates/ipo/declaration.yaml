@@ -1,0 +1,22 @@
+id: declaration
+section_name: Declaration
+display_order: 29
+description: Declarations and certifications by the Board of Directors and other signatories.
+knowledge_mapping:
+- category: management
+  fields:
+  - directors
+  - director_signatures
+- category: company
+  fields:
+  - company_name
+  - registered_address
+validation_rules:
+- field: management.directors
+  required: true
+  description: Director list for signing
+prompt_template_path: prompts/declaration.md
+output_format: markdown
+dependencies: []
+estimated_pages: 1
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part C

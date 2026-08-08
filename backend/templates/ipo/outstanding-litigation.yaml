@@ -1,0 +1,26 @@
+id: outstanding-litigation
+section_name: Outstanding Litigation
+display_order: 25
+description: Disclosure of all pending legal proceedings against the company, directors,
+  and promoters.
+knowledge_mapping:
+- category: litigation
+  fields:
+  - pending_cases
+  - criminal_cases
+  - civil_cases
+  - tax_disputes
+  - regulatory_actions
+  - material_litigations
+validation_rules:
+- field: litigation.pending_cases
+  required: true
+  description: Number of pending cases
+- field: litigation.material_litigations
+  required: false
+  description: Materiality threshold for disclosure
+prompt_template_path: prompts/outstanding-litigation.md
+output_format: markdown
+dependencies: []
+estimated_pages: 5
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A(16)

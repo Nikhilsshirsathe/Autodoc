@@ -1,0 +1,26 @@
+id: business-overview
+section_name: "Business Overview"
+display_order: 7
+description: >
+  Detailed overview of the company's business model, products/services, customers,
+  markets, and competitive advantages.
+knowledge_mapping:
+  - category: business
+    fields: [business_overview, business_model, products, services, key_customers, customer_segments, revenue_model]
+  - category: operations
+    fields: [geographies, locations, capacity]
+validation_rules:
+  - field: business.business_overview
+    required: true
+    description: "Business overview"
+  - field: business.products
+    required: true
+    description: "Products offered"
+  - field: business.services
+    required: false
+    description: "Services offered"
+prompt_template_path: "prompts/business-overview.md"
+output_format: markdown
+dependencies: [company-overview]
+estimated_pages: 5
+sebi_reference: "SEBI (ICDR) Regulations, 2018"

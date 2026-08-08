@@ -1,0 +1,26 @@
+id: shareholding-pattern
+section_name: Shareholding Pattern
+display_order: 18
+description: Pre and post-issue shareholding pattern including promoters, public,
+  and institutional holdings.
+knowledge_mapping:
+- category: shareholding
+  fields:
+  - pre_issue_shareholding
+  - post_issue_shareholding
+  - promoter_holding
+  - public_holding
+  - institutional_holding
+validation_rules:
+- field: shareholding.pre_issue_shareholding
+  required: true
+  description: Pre-issue shareholding
+- field: shareholding.post_issue_shareholding
+  required: true
+  description: Post-issue shareholding
+prompt_template_path: prompts/shareholding-pattern.md
+output_format: markdown
+dependencies:
+- capital-structure
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Reg. 36

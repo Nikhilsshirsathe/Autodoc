@@ -1,0 +1,30 @@
+id: capital-structure
+section_name: Capital Structure
+display_order: 19
+description: Details of authorized and paid-up share capital, share history, and post-issue
+  capital.
+knowledge_mapping:
+- category: company
+  fields:
+  - authorized_capital
+  - paid_up_capital
+- category: issue
+  fields:
+  - fresh_issue_shares
+  - issue_price
+  - face_value
+- category: shareholding
+  fields:
+  - total_shares
+validation_rules:
+- field: company.authorized_capital
+  required: true
+  description: Authorized share capital
+- field: company.paid_up_capital
+  required: true
+  description: Paid-up share capital
+prompt_template_path: prompts/capital-structure.md
+output_format: markdown
+dependencies: []
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018

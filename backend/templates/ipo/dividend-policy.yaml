@@ -1,0 +1,25 @@
+id: dividend-policy
+section_name: Dividend Policy
+display_order: 23
+description: Company's dividend policy, past dividend history, and future dividend
+  outlook.
+knowledge_mapping:
+- category: financials
+  fields:
+  - dividend_history
+  - dividend_per_share
+  - dividend_policy
+  - payout_ratio
+validation_rules:
+- field: financials.dividend_policy
+  required: false
+  description: Stated dividend policy
+- field: financials.dividend_history
+  required: false
+  description: Historical dividends paid
+prompt_template_path: prompts/dividend-policy.md
+output_format: markdown
+dependencies:
+- financial-information
+estimated_pages: 1
+sebi_reference: SEBI (ICDR) Regulations, 2018

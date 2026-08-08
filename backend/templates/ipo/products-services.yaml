@@ -1,0 +1,22 @@
+id: products-services
+section_name: Products & Services
+display_order: 11
+description: Detailed description of all products and services offered by the company.
+knowledge_mapping:
+- category: business
+  fields:
+  - products
+  - services
+  - product_portfolio
+  - product_pricing
+  - product_pipeline
+validation_rules:
+- field: business.products
+  required: true
+  description: Product portfolio
+prompt_template_path: prompts/products-services.md
+output_format: markdown
+dependencies:
+- business-overview
+estimated_pages: 4
+sebi_reference: SEBI (ICDR) Regulations, 2018

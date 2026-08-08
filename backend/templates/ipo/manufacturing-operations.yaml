@@ -1,0 +1,26 @@
+id: manufacturing-operations
+section_name: Manufacturing & Operations
+display_order: 12
+description: Manufacturing facilities, production capacity, supply chain, and operational
+  processes.
+knowledge_mapping:
+- category: operations
+  fields:
+  - manufacturing_locations
+  - production_capacity
+  - utilization_rate
+  - supply_chain
+  - raw_materials
+validation_rules:
+- field: operations.manufacturing_locations
+  required: false
+  description: Manufacturing facility locations
+- field: operations.production_capacity
+  required: false
+  description: Production capacity
+prompt_template_path: prompts/manufacturing-operations.md
+output_format: markdown
+dependencies:
+- business-overview
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018

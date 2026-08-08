@@ -1,0 +1,26 @@
+id: related-party-transactions
+section_name: Related Party Transactions
+display_order: 24
+description: Disclosure of all material transactions with related parties as per Ind
+  AS 24.
+knowledge_mapping:
+- category: transactions
+  fields:
+  - related_parties
+  - rpt_nature
+  - rpt_amounts
+  - rpt_terms
+  - outstanding_balances
+validation_rules:
+- field: transactions.related_parties
+  required: true
+  description: Related party list
+- field: transactions.rpt_amounts
+  required: true
+  description: Transaction amounts
+prompt_template_path: prompts/related-party-transactions.md
+output_format: markdown
+dependencies:
+- financial-information
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Reg. 32

@@ -1,0 +1,21 @@
+id: industry-overview
+section_name: "Industry Overview"
+display_order: 5
+description: >
+  Overview of the industry in which the company operates, including size, growth drivers,
+  trends, competitive landscape, and regulatory environment.
+knowledge_mapping:
+  - category: industry
+    fields: [industry_name, industry_size, market_growth_rate, industry_trends, key_players, industry_challenges]
+validation_rules:
+  - field: industry.industry_name
+    required: true
+    description: "Primary industry or sector"
+  - field: industry.industry_size
+    required: false
+    description: "Total addressable market size"
+prompt_template_path: "prompts/industry-overview.md"
+output_format: markdown
+dependencies: []
+estimated_pages: 4
+sebi_reference: "SEBI (ICDR) Regulations, 2018 – Schedule VIII"

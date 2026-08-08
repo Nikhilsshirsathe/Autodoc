@@ -1,0 +1,14 @@
+id: definitions-abbreviations
+section_name: "Definitions & Abbreviations"
+display_order: 2
+description: >
+  Definitions of key terms and abbreviations used throughout the DRHP document.
+knowledge_mapping:
+  - category: glossary
+    fields: [industry_terms, regulatory_terms, financial_terms]
+validation_rules: []
+prompt_template_path: "prompts/definitions-abbreviations.md"
+output_format: markdown
+dependencies: []
+estimated_pages: 3
+sebi_reference: "SEBI (ICDR) Regulations, 2018"

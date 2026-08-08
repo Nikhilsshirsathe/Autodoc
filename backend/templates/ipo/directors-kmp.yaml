@@ -1,0 +1,25 @@
+id: directors-kmp
+section_name: Directors & Key Management Personnel
+display_order: 16
+description: Profiles of the Board of Directors and Key Management Personnel including
+  qualifications, experience, and compensation.
+knowledge_mapping:
+- category: management
+  fields:
+  - directors
+  - kmp
+  - board_committees
+  - director_compensation
+  - din_details
+validation_rules:
+- field: management.directors
+  required: true
+  description: Board of Directors list
+- field: management.kmp
+  required: true
+  description: Key Management Personnel
+prompt_template_path: prompts/directors-kmp.md
+output_format: markdown
+dependencies: []
+estimated_pages: 5
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A(12)

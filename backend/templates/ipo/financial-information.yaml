@@ -1,0 +1,40 @@
+id: financial-information
+section_name: Financial Information
+display_order: 20
+description: Audited financial statements including Balance Sheet, P&L, Cash Flow,
+  and key financial ratios for last 3 years.
+knowledge_mapping:
+- category: financials
+  fields:
+  - balance_sheet
+  - pnl
+  - cash_flow
+  - notes_to_accounts
+  - financial_ratios
+  - revenue
+  - net_profit
+  - total_assets
+  - net_worth
+  - eps
+  - roe
+validation_rules:
+- field: financials.revenue
+  required: true
+  description: Revenue from operations
+- field: financials.net_profit
+  required: true
+  description: Net profit/loss after tax
+- field: financials.balance_sheet
+  required: true
+  description: Balance sheet data
+- field: financials.cash_flow
+  required: true
+  description: Cash flow statement
+- field: financials.eps
+  required: false
+  description: Earnings per share
+prompt_template_path: prompts/financial-information.md
+output_format: markdown
+dependencies: []
+estimated_pages: 12
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A(21)

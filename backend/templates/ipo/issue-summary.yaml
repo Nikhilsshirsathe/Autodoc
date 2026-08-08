@@ -1,0 +1,30 @@
+id: issue-summary
+section_name: "Issue Summary"
+display_order: 3
+description: >
+  Summary of the IPO issue including size, objects, shareholding pre/post issue, and key metrics.
+knowledge_mapping:
+  - category: issue
+    fields: [issue_size, fresh_issue_size, offer_for_sale_size, price_band, face_value, lot_size, issue_dates]
+  - category: shareholding
+    fields: [pre_issue_promoter_holding, post_issue_promoter_holding, pre_issue_shares, post_issue_shares]
+  - category: company
+    fields: [company_name, cin]
+validation_rules:
+  - field: issue.issue_size
+    required: true
+    description: "Total issue size"
+  - field: issue.fresh_issue_size
+    required: true
+    description: "Fresh issue component"
+  - field: shareholding.pre_issue_promoter_holding
+    required: true
+    description: "Promoter holding % before IPO"
+  - field: shareholding.post_issue_promoter_holding
+    required: true
+    description: "Promoter holding % after IPO"
+prompt_template_path: "prompts/issue-summary.md"
+output_format: markdown
+dependencies: []
+estimated_pages: 2
+sebi_reference: "SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A"

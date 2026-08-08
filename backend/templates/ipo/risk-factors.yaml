@@ -1,0 +1,27 @@
+id: risk-factors
+section_name: "Risk Factors"
+display_order: 4
+description: >
+  Detailed disclosure of business, financial, operational, legal, and regulatory risks faced by the company.
+knowledge_mapping:
+  - category: risk
+    fields: [business_risks, financial_risks, operational_risks, legal_risks, regulatory_risks, market_risks]
+  - category: litigation
+    fields: [pending_cases, material_litigations]
+  - category: compliance
+    fields: [regulatory_violations, compliance_issues]
+validation_rules:
+  - field: risk.business_risks
+    required: true
+    description: "Business-specific risks"
+  - field: risk.financial_risks
+    required: true
+    description: "Financial and liquidity risks"
+  - field: litigation.pending_cases
+    required: false
+    description: "Pending legal cases"
+prompt_template_path: "prompts/risk-factors.md"
+output_format: markdown
+dependencies: []
+estimated_pages: 8
+sebi_reference: "SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part A(7)"

@@ -1,0 +1,31 @@
+id: company-overview
+section_name: "Company Overview"
+display_order: 6
+description: >
+  Overview of the company including legal structure, incorporation details, history,
+  mission, vision, and corporate structure.
+knowledge_mapping:
+  - category: company
+    fields: [company_name, cin, pan, incorporation_date, registered_address, corporate_office, website, email, phone]
+  - category: business
+    fields: [business_overview, mission, vision, values]
+  - category: structure
+    fields: [company_type, authorized_capital, paid_up_capital, subsidiaries, associates]
+validation_rules:
+  - field: company.company_name
+    required: true
+    description: "Legal name of the company"
+  - field: company.cin
+    required: true
+    description: "Corporate Identification Number"
+  - field: company.incorporation_date
+    required: true
+    description: "Date of incorporation"
+  - field: business.business_overview
+    required: true
+    description: "Brief overview of the business"
+prompt_template_path: "prompts/company-overview.md"
+output_format: markdown
+dependencies: []
+estimated_pages: 3
+sebi_reference: "SEBI (ICDR) Regulations, 2018"

@@ -1,0 +1,24 @@
+id: competitive-strengths
+section_name: Competitive Strengths
+display_order: 8
+description: Key competitive advantages and differentiators of the company.
+knowledge_mapping:
+- category: business
+  fields:
+  - competitive_strengths
+  - unique_selling_proposition
+  - market_position
+- category: financials
+  fields:
+  - revenue_growth
+  - ebitda_margin
+validation_rules:
+- field: business.competitive_strengths
+  required: true
+  description: Competitive strengths
+prompt_template_path: prompts/competitive-strengths.md
+output_format: markdown
+dependencies:
+- business-overview
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018

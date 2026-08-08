@@ -1,0 +1,24 @@
+id: business-strategy
+section_name: Business Strategy
+display_order: 9
+description: Future growth plans, strategic initiatives, and expansion roadmap.
+knowledge_mapping:
+- category: business
+  fields:
+  - growth_strategy
+  - expansion_plans
+  - capex_plans
+  - product_pipeline
+- category: issue
+  fields:
+  - objects_of_issue
+validation_rules:
+- field: business.growth_strategy
+  required: true
+  description: Strategic growth plans
+prompt_template_path: prompts/business-strategy.md
+output_format: markdown
+dependencies:
+- business-overview
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018

@@ -1,0 +1,24 @@
+id: government-approvals
+section_name: Government Approvals
+display_order: 27
+description: All government and regulatory approvals, licenses, and permits obtained
+  and pending.
+knowledge_mapping:
+- category: compliance
+  fields:
+  - licenses
+  - government_approvals
+  - pending_approvals
+  - license_renewals
+validation_rules:
+- field: compliance.licenses
+  required: true
+  description: Operating licenses
+- field: compliance.government_approvals
+  required: false
+  description: Government approvals
+prompt_template_path: prompts/government-approvals.md
+output_format: markdown
+dependencies: []
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018

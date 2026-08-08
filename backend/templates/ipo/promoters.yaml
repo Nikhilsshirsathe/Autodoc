@@ -1,0 +1,25 @@
+id: promoters
+section_name: Promoters
+display_order: 17
+description: Details of promoters and promoter group including background, shareholding,
+  and lock-in period.
+knowledge_mapping:
+- category: promoters
+  fields:
+  - promoter_names
+  - promoter_background
+  - promoter_shareholding
+  - lock_in_period
+  - group_entities
+validation_rules:
+- field: promoters.promoter_names
+  required: true
+  description: Promoter names
+- field: promoters.promoter_shareholding
+  required: true
+  description: Promoter shareholding
+prompt_template_path: prompts/promoters.md
+output_format: markdown
+dependencies: []
+estimated_pages: 3
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Reg. 36

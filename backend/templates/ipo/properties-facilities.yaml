@@ -1,0 +1,24 @@
+id: properties-facilities
+section_name: Properties & Facilities
+display_order: 13
+description: Owned and leased properties, office locations, warehouses, and facilities.
+knowledge_mapping:
+- category: assets
+  fields:
+  - owned_properties
+  - leased_properties
+  - office_locations
+  - warehouses
+validation_rules:
+- field: assets.owned_properties
+  required: false
+  description: Owned properties
+- field: company.registered_address
+  required: true
+  description: Registered office address
+prompt_template_path: prompts/properties-facilities.md
+output_format: markdown
+dependencies:
+- company-overview
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018

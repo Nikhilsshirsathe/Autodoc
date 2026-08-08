@@ -1,0 +1,25 @@
+id: objects-of-issue
+section_name: Objects of the Issue
+display_order: 21
+description: Purpose and utilization plan for the funds raised through the IPO.
+knowledge_mapping:
+- category: issue
+  fields:
+  - objects_of_issue
+  - fresh_issue_amount
+  - capex_plan
+  - working_capital_requirement
+  - general_corporate_purposes
+validation_rules:
+- field: issue.objects_of_issue
+  required: true
+  description: Objects of the issue
+- field: issue.fresh_issue_amount
+  required: true
+  description: Fresh issue amount
+prompt_template_path: prompts/objects-of-issue.md
+output_format: markdown
+dependencies:
+- issue-summary
+estimated_pages: 4
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Reg. 7(1)

@@ -1,0 +1,28 @@
+id: statutory-information
+section_name: Statutory Information
+display_order: 28
+description: Statutory disclosures, stock market data, and other mandatory information.
+knowledge_mapping:
+- category: company
+  fields:
+  - company_name
+  - cin
+  - registered_address
+  - auditor
+- category: compliance
+  fields:
+  - statutory_auditor
+  - cost_auditor
+  - secretarial_auditor
+validation_rules:
+- field: company.cin
+  required: true
+  description: CIN
+- field: compliance.statutory_auditor
+  required: true
+  description: Statutory auditor details
+prompt_template_path: prompts/statutory-information.md
+output_format: markdown
+dependencies: []
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018

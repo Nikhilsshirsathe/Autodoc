@@ -1,0 +1,21 @@
+id: material-contracts
+section_name: Material Contracts
+display_order: 26
+description: Summary of material contracts not entered into in the ordinary course
+  of business.
+knowledge_mapping:
+- category: contracts
+  fields:
+  - material_contracts
+  - key_agreements
+  - joint_ventures
+  - partnerships
+validation_rules:
+- field: contracts.material_contracts
+  required: false
+  description: Material contracts list
+prompt_template_path: prompts/material-contracts.md
+output_format: markdown
+dependencies: []
+estimated_pages: 2
+sebi_reference: SEBI (ICDR) Regulations, 2018 – Schedule VIII, Part B(1)
