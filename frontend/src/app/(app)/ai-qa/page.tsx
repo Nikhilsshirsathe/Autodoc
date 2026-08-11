@@ -33,17 +33,6 @@ interface Message {
   error?: boolean;
 }
 
-// ── Suggested questions ───────────────────────────────────────────────────────
-
-const SUGGESTIONS = [
-  "What is the company's CIN number?",
-  "Who are the key directors on the board?",
-  "What is the total revenue for the latest financial year?",
-  "What are the main risk factors mentioned?",
-  "What is the issue size and price band?",
-  "Summarise the company's business overview.",
-];
-
 // ── Source card ───────────────────────────────────────────────────────────────
 
 function SourceCard({ source, index }: { source: ChatSource; index: number }) {
@@ -380,18 +369,7 @@ export default function AIQAPage() {
                     Ask questions about your uploaded documents. The AI will search the knowledge base and answer with source references.
                   </p>
                 </div>
-                {/* Suggested questions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => sendMessage(s)}
-                      className="text-left text-xs px-4 py-2.5 rounded-xl border border-border bg-muted/50 hover:bg-muted hover:border-primary/30 transition-all text-foreground/80 leading-snug"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+                {/* Suggested questions removed */}
               </div>
             ) : (
               messages.map((msg) => <MessageBubble key={msg.id} msg={msg} />)
