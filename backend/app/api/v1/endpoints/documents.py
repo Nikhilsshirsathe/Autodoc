@@ -370,6 +370,15 @@ async def delete_document(document_id: str, user_id: str):
         # Delete DB record (cascades handle child rows)
         supabase.table("documents").delete().eq("id", document_id).execute()
 
+        # Keep project counter in sync
+        project_id = doc.get("project_id")
+        if project_id:
+            try:
+                res = supabase.table("documents").select("id", count="exact").eq("project_id", project_id).execute()
+                supabase.table("projects").update({"documents_uploaded": res.count or 0}).eq("id", project_id).execute()
+            except Exception as e:
+                logger.warning("Failed to update documents_uploaded after delete: %s", e)
+
     except HTTPException:
         raise
     except Exception as exc:

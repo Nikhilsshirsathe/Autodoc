@@ -142,6 +142,68 @@ async def update_project(project_id: str, user_id: str, payload: dict):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# ── Sync project counters ──────────────────────────────────────────────────────
+
+@router.post("/{project_id}/sync-counters")
+async def sync_project_counters(project_id: str, user_id: str):
+    """
+    Recalculate and write documents_uploaded and ai_confidence from actual DB data.
+    Useful for backfilling after documents were uploaded before this counter existed.
+    """
+    try:
+        db = _db()
+
+        # Count documents
+        doc_res = (
+            db.table("documents")
+            .select("id", count="exact")
+            .eq("project_id", project_id)
+            .execute()
+        )
+        doc_count = doc_res.count or 0
+
+        # Average ai confidence from extracted fields
+        doc_ids_res = db.table("documents").select("id").eq("project_id", project_id).execute()
+        doc_ids = [d["id"] for d in (doc_ids_res.data or [])]
+
+        avg_confidence = 0
+        if doc_ids:
+            fields_res = (
+                db.table("extracted_fields")
+                .select("confidence")
+                .in_("document_id", doc_ids)
+                .execute()
+            )
+            confidences = [
+                f["confidence"] for f in (fields_res.data or [])
+                if f.get("confidence") is not None
+            ]
+            if confidences:
+                avg_confidence = round(sum(confidences) / len(confidences) * 100)
+
+        update_payload = {
+            "documents_uploaded": doc_count,
+            "updated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        }
+        if avg_confidence > 0:
+            update_payload["ai_confidence"] = avg_confidence
+
+        res = db.table("projects").update(update_payload).eq("id", project_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        return {
+            "project_id": project_id,
+            "documents_uploaded": doc_count,
+            "ai_confidence": avg_confidence,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Sync counters failed for %s: %s", project_id, exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 # ── Delete project ─────────────────────────────────────────────────────────────
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { useProject } from "@/context/project-context";
 import {
   getIpoTemplates,
   validateKnowledgeBase,
@@ -28,6 +29,7 @@ import {
   generateFullDraft,
   downloadMarkdown,
   downloadDocx,
+  downloadPdf,
 } from "@/lib/data/ipo";
 import type {
   IpoTemplateMetadata,
@@ -39,6 +41,7 @@ import type {
 
 export default function IpoDraftGeneratorPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const { selectedProjectId } = useProject();
   const userId = user?.id ?? "";
   const userResolved = !authLoading && !!userId;
   const [projectName, setProjectName] = useState<string>("My IPO Draft");
@@ -52,6 +55,11 @@ export default function IpoDraftGeneratorPage() {
   const [isValidating, setIsValidating] = useState(false);
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [generatingSection, setGeneratingSection] = useState<string | null>(null);
+
+  // Draft history: each entry is { label, timestamp, sections snapshot }
+  const [draftHistory, setDraftHistory] = useState<
+    Array<{ label: string; timestamp: string; sections: Map<string, GenerationResult> }>
+  >([]);
 
   // Load templates immediately — they don't need a user ID
   useEffect(() => {
@@ -79,7 +87,7 @@ export default function IpoDraftGeneratorPage() {
     if (!userId) return;
     setIsValidating(true);
     try {
-      const result = await validateKnowledgeBase(userId);
+      const result = await validateKnowledgeBase(userId, selectedProjectId ?? undefined);
       setValidation(result);
     } catch (err: any) {
       toast.error("Validation failed", { description: err.message });
@@ -125,7 +133,7 @@ export default function IpoDraftGeneratorPage() {
   const handleGenerateAll = async (force: boolean = false) => {
     if (!userId) return;
     setIsGeneratingAll(true);
-    toast.info("Generating complete DRHP...", {
+    toast.info("Generating complete IPO Draft...", {
       description: "This may take a few minutes.",
     });
 
@@ -141,7 +149,18 @@ export default function IpoDraftGeneratorPage() {
       }
       setGeneratedSections(newMap);
 
-      toast.success("Draft generation complete!", {
+      // Save snapshot to draft history
+      const draftNum = draftHistory.length + 1;
+      setDraftHistory((prev) => [
+        ...prev,
+        {
+          label: `Draft ${draftNum}`,
+          timestamp: new Date().toLocaleTimeString(),
+          sections: new Map(newMap),
+        },
+      ]);
+
+      toast.success("IPO Draft generation complete!", {
         description: `${summary.generated_count}/${summary.total_sections} sections • ${summary.total_word_count} words`,
       });
     } catch (err: any) {
@@ -151,7 +170,7 @@ export default function IpoDraftGeneratorPage() {
     }
   };
 
-  const handleDownload = async (format: "markdown" | "docx") => {
+  const handleDownload = async (format: "markdown" | "docx" | "pdf") => {
     if (!userId || generatedSections.size === 0) {
       toast.error("No sections to download");
       return;
@@ -159,16 +178,25 @@ export default function IpoDraftGeneratorPage() {
 
     try {
       const sections = Array.from(generatedSections.values());
-      const blob =
-        format === "markdown"
-          ? await downloadMarkdown({ user_id: userId, sections, company_name: projectName })
-          : await downloadDocx({ user_id: userId, sections, company_name: projectName });
+      let blob: Blob;
+      let ext: string;
+
+      if (format === "markdown") {
+        blob = await downloadMarkdown({ user_id: userId, sections, company_name: projectName });
+        ext = "md";
+      } else if (format === "docx") {
+        blob = await downloadDocx({ user_id: userId, sections, company_name: projectName });
+        ext = "docx";
+      } else {
+        blob = await downloadPdf({ user_id: userId, sections, company_name: projectName });
+        ext = "pdf";
+      }
 
       const safeName = projectName.replace(/[^a-z0-9]/gi, "_");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${safeName}_DRHP.${format === "markdown" ? "md" : "docx"}`;
+      a.download = `${safeName}_IPO_Draft.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -332,10 +360,21 @@ export default function IpoDraftGeneratorPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleDownload("markdown")}
+                  onClick={() => handleDownload("pdf")}
                   disabled={generatedSections.size === 0}
                   className="h-8 text-xs"
                   size="sm"
+                  title="Download PDF"
+                >
+                  <FileDown className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownload("docx")}
+                  disabled={generatedSections.size === 0}
+                  className="h-8 text-xs"
+                  size="sm"
+                  title="Download DOCX"
                 >
                   <Download className="h-3 w-3" />
                 </Button>
@@ -403,6 +442,60 @@ export default function IpoDraftGeneratorPage() {
             })}
           </nav>
         </ScrollArea>
+
+        {/* Draft history panel */}
+        {draftHistory.length > 0 && (
+          <div className="border-t shrink-0">
+            <div className="px-3 py-2 flex items-center justify-between">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                Draft History
+              </p>
+            </div>
+            <div className="px-2 pb-2 space-y-0.5 max-h-36 overflow-y-auto">
+              {draftHistory.map((draft, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-muted/50 group"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium truncate">{draft.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{draft.timestamp}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Download this draft as PDF"
+                    onClick={async () => {
+                      try {
+                        const sections = Array.from(draft.sections.values());
+                        const blob = await downloadPdf({
+                          user_id: userId,
+                          sections,
+                          company_name: projectName,
+                        });
+                        const safeName = projectName.replace(/[^a-z0-9]/gi, "_");
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${safeName}_${draft.label.replace(" ", "_")}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast.success(`${draft.label} downloaded`);
+                      } catch (err: any) {
+                        toast.error("Download failed", { description: err.message });
+                      }
+                    }}
+                  >
+                    <FileDown className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main content area */}
@@ -423,7 +516,7 @@ export default function IpoDraftGeneratorPage() {
                 <div>
                   <h2 className="text-lg font-semibold">IPO Draft Generator</h2>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                    Generate all 29 DRHP sections from your uploaded documents.
+                    Generate all 29 IPO Draft sections from your uploaded documents.
                     Missing data is marked as placeholders for review.
                   </p>
                 </div>
@@ -650,7 +743,7 @@ export default function IpoDraftGeneratorPage() {
                         ) : (
                           <Play className="h-4 w-4 mr-2" />
                         )}
-                        Generate All 29 Sections
+                      Generate All 29 Sections
                       </Button>
                     </div>
                     {validation && (

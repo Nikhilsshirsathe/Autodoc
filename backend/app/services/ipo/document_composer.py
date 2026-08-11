@@ -1,10 +1,10 @@
 """
-DocumentComposer: Merge generated sections into a complete IPO draft document.
+DocumentComposer: Merge generated sections into a complete IPO Draft document.
 
 Supports:
   - Markdown output (primary)
   - DOCX output (via python-docx if available, graceful fallback)
-  - Extensible architecture for future PDF support
+  - PDF output (via pypdfium2)
 
 Sections are merged according to display_order from their templates.
 """
@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import io
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -20,12 +21,12 @@ from app.services.ipo.template_loader import TemplateLoader
 
 logger = logging.getLogger(__name__)
 
-# DRHP document header template
-DRHP_HEADER = """# DRAFT RED HERRING PROSPECTUS
+# IPO Draft document header template
+IPO_DRAFT_HEADER = """# IPO DRAFT DOCUMENT
 
 > **IMPORTANT DISCLAIMER**
 >
-> This Draft Red Herring Prospectus ("DRHP") has been prepared using AUTODOC, an AI-powered
+> This IPO Draft has been prepared using AUTODOC, an AI-powered
 > document generation platform. This document is NOT a final regulatory filing.
 > All information, figures, disclosures, and statements contained herein are AI-generated
 > first drafts based on the documents uploaded to the system.
@@ -44,6 +45,9 @@ DRHP_HEADER = """# DRAFT RED HERRING PROSPECTUS
 ---
 
 """
+
+# Keep legacy alias so any external code still using DRHP_HEADER doesn't break
+DRHP_HEADER = IPO_DRAFT_HEADER
 
 
 class DocumentComposer:
@@ -84,7 +88,7 @@ class DocumentComposer:
         )
 
         now = datetime.now(timezone.utc)
-        header = DRHP_HEADER.format(
+        header = IPO_DRAFT_HEADER.format(
             year=now.year,
             generated_at=now.strftime("%d %B %Y, %H:%M UTC"),
             sections_generated=len(generated),
@@ -132,7 +136,7 @@ class DocumentComposer:
         doc = Document()
 
         # Document title
-        title = doc.add_heading(f"DRAFT RED HERRING PROSPECTUS", 0)
+        title = doc.add_heading(f"IPO DRAFT DOCUMENT", 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         # Subtitle
@@ -191,6 +195,204 @@ class DocumentComposer:
         doc.save(buffer)
         buffer.seek(0)
         return buffer.read()
+
+    def compose_pdf(
+        self,
+        sections: list[GenerationResult],
+        company_name: str = "[Company Name]",
+    ) -> bytes:
+        """
+        Compose all generated sections into a PDF file using pypdfium2.
+
+        Uses pypdfium2's raw FPDF API to place standard-font text objects
+        onto A4 pages with automatic line wrapping and pagination.
+
+        Returns:
+            bytes: PDF file content
+
+        Raises:
+            RuntimeError: If pypdfium2 is not available
+        """
+        try:
+            import pypdfium2 as pdfium
+            import pypdfium2.raw as pdfium_r
+        except ImportError:
+            raise RuntimeError(
+                "pypdfium2 is not installed. "
+                "Add 'pypdfium2' to requirements.txt and reinstall."
+            )
+        import ctypes
+
+        ordered = self._sort_sections(sections)
+        generated = [s for s in ordered if s.status == SectionStatus.GENERATED]
+        completeness = (
+            sum(s.completeness for s in generated) / len(generated) * 100
+            if generated else 0.0
+        )
+        now = datetime.now(timezone.utc)
+        generated_at = now.strftime("%d %B %Y, %H:%M UTC")
+
+        # ── Layout constants (A4, points) ──────────────────────────────────
+        PAGE_W, PAGE_H = 595, 842
+        MARGIN_L, MARGIN_R, MARGIN_TOP, MARGIN_BOT = 60, 60, 60, 60
+        CONTENT_W = PAGE_W - MARGIN_L - MARGIN_R
+
+        # Characters-per-line approximation at given size (Helvetica ≈ 0.5 * pt wide per char)
+        def chars_per_line(pt: float) -> int:
+            return max(1, int(CONTENT_W / (pt * 0.55)))
+
+        def encode_utf16le(text: str):
+            """Return a ctypes buffer of UTF-16LE text suitable for FPDFText_SetText."""
+            data = text.encode("utf-16-le") + b"\x00\x00"
+            buf_t = ctypes.c_uint16 * (len(data) // 2)
+            return buf_t.from_buffer_copy(data)
+
+        def wrap(text: str, pt: float) -> list[str]:
+            """Word-wrap text to fit the content width at font size pt."""
+            max_ch = chars_per_line(pt)
+            words = text.split()
+            lines: list[str] = []
+            current = ""
+            for word in words:
+                if len(current) + (1 if current else 0) + len(word) <= max_ch:
+                    current = f"{current} {word}".lstrip()
+                else:
+                    if current:
+                        lines.append(current)
+                    current = word
+            if current:
+                lines.append(current)
+            return lines or [""]
+
+        doc = pdfium.PdfDocument.new()
+        current_page: list = [None]   # mutable cell so helpers can reference it
+        current_y:    list = [0.0]
+
+        def _new_page():
+            p = doc.new_page(PAGE_W, PAGE_H)
+            current_page[0] = p
+            current_y[0] = PAGE_H - MARGIN_TOP
+
+        def _add_line(text: str, pt: float,
+                      bold: bool = False,
+                      italic: bool = False,
+                      color: tuple = (0, 0, 0),
+                      x_offset: float = 0.0):
+            """Place one line of text on the current page; auto-paginate."""
+            if current_y[0] - pt < MARGIN_BOT:
+                _new_page()
+
+            font_name = (
+                b"Helvetica-BoldOblique" if (bold and italic) else
+                b"Helvetica-Bold"        if bold else
+                b"Helvetica-Oblique"     if italic else
+                b"Helvetica"
+            )
+            r, g, b = color
+            raw_doc = doc.raw
+            raw_page = current_page[0].raw
+
+            tobj = pdfium_r.FPDFPageObj_NewTextObj(raw_doc, font_name, float(pt))
+            pdfium_r.FPDFPageObj_SetFillColor(tobj, r, g, b, 255)
+            pdfium_r.FPDFText_SetText(tobj, encode_utf16le(text[:200]))
+            pdfium_r.FPDFPageObj_Transform(
+                tobj, 1, 0, 0, 1,
+                MARGIN_L + x_offset,
+                current_y[0] - pt,
+            )
+            pdfium_r.FPDFPage_InsertObject(raw_page, tobj)
+            pdfium_r.FPDFPage_GenerateContent(raw_page)
+            current_y[0] -= pt + 3
+
+        def _add_para(text: str, pt: float,
+                      bold: bool = False, italic: bool = False,
+                      color: tuple = (0, 0, 0),
+                      x_offset: float = 0.0,
+                      gap_after: float = 6.0):
+            """Wrap and emit a paragraph."""
+            for line in wrap(text, pt):
+                _add_line(line, pt, bold=bold, italic=italic,
+                          color=color, x_offset=x_offset)
+            current_y[0] -= gap_after  # extra paragraph gap
+
+        def _spacer(pts: float = 10.0):
+            current_y[0] -= pts
+
+        # ── Cover page ────────────────────────────────────────────────────
+        _new_page()
+        _spacer(40)
+        _add_para("IPO DRAFT DOCUMENT", 20, bold=True)
+        _add_para(company_name, 14, bold=True)
+        _spacer(6)
+        _add_para(f"Generated: {generated_at}", 9, italic=True, color=(100, 100, 100))
+        _add_para(
+            f"Sections: {len(generated)}/{len(ordered)}  |  "
+            f"Completeness: {completeness:.1f}%",
+            9, color=(100, 100, 100),
+        )
+        _spacer(20)
+        _add_para("IMPORTANT DISCLAIMER", 9, bold=True, color=(180, 0, 0))
+        for line in [
+            "This IPO Draft is an AI-generated first draft produced by AUTODOC.",
+            "It is NOT a final regulatory filing. All information must be reviewed,",
+            "verified and approved by qualified Merchant Bankers, Legal Advisors,",
+            "and Company Secretaries before submission to SEBI or any stock exchange.",
+        ]:
+            _add_line(line, 8, italic=True, color=(120, 60, 60))
+
+        # ── Table of contents ──────────────────────────────────────────────
+        _new_page()
+        _add_para("TABLE OF CONTENTS", 13, bold=True)
+        _spacer(4)
+        for i, result in enumerate(ordered, 1):
+            status_label = self._status_label(result.status)
+            _add_line(
+                f"{i:02d}.  {result.section_name}  [{status_label}]",
+                9,
+            )
+
+        # ── Section pages ──────────────────────────────────────────────────
+        for result in ordered:
+            _new_page()
+            _add_para(result.section_name.upper(), 13, bold=True)
+            _spacer(4)
+
+            if result.status == SectionStatus.GENERATED and result.content:
+                clean = self._strip_markdown(result.content)
+                for para in clean.split("\n\n"):
+                    para = para.strip()
+                    if not para:
+                        continue
+                    is_heading = para.isupper() and len(para) < 80
+                    _add_para(para, 10 if is_heading else 9, bold=is_heading)
+            elif result.status == SectionStatus.MISSING:
+                _add_para(
+                    "[Section Not Generated — Required knowledge fields are missing. "
+                    "Upload relevant documents and regenerate.]",
+                    9, italic=True, color=(160, 80, 0),
+                )
+            else:
+                _add_para("[Section Pending Generation]",
+                          9, italic=True, color=(120, 120, 120))
+
+            # Source footer at bottom of first section page
+            if result.sources:
+                src_names = ", ".join(
+                    s.document_name or s.document_id for s in result.sources[:3]
+                )
+                saved_y = current_y[0]
+                current_y[0] = MARGIN_BOT + 10
+                _add_line(
+                    f"Sources: {src_names[:120]}",
+                    7, italic=True, color=(120, 120, 120),
+                )
+                current_y[0] = min(saved_y, current_y[0])
+
+        # Save to bytes
+        buf = io.BytesIO()
+        doc.save(buf)
+        buf.seek(0)
+        return buf.read()
 
     def get_generation_summary(self, sections: list[GenerationResult]) -> dict:
         """

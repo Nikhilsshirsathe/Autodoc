@@ -5,9 +5,10 @@ Routes:
   GET  /api/v1/ipo/templates          — Return master template metadata (all 29 sections)
   POST /api/v1/ipo/validate            — Validate knowledge base completeness
   POST /api/v1/ipo/generate-section    — Generate a single section
-  POST /api/v1/ipo/generate            — Generate all sections (complete draft)
+  POST /api/v1/ipo/generate            — Generate all sections (complete IPO Draft)
   GET  /api/v1/ipo/download/markdown   — Download draft as Markdown
   GET  /api/v1/ipo/download/docx       — Download draft as DOCX
+  GET  /api/v1/ipo/download/pdf        — Download draft as PDF
 """
 from __future__ import annotations
 
@@ -33,6 +34,7 @@ router = APIRouter()
 
 class ValidateRequest(BaseModel):
     user_id: str = Field(..., description="User ID to scope the knowledge base")
+    project_id: Optional[str] = Field(default=None, description="Project ID to write validation_score back to")
 
 
 class GenerateSectionRequest(BaseModel):
@@ -87,7 +89,7 @@ class DownloadRequest(BaseModel):
 
 @router.get(
     "/templates",
-    summary="Get all DRHP section template metadata",
+    summary="Get all IPO Draft section template metadata",
     tags=["IPO Generation"],
 )
 async def get_templates() -> list[dict]:
@@ -111,12 +113,12 @@ async def get_templates() -> list[dict]:
 @router.post(
     "/validate",
     response_model=ValidationResult,
-    summary="Validate knowledge base completeness for IPO generation",
+    summary="Validate knowledge base completeness for IPO Draft generation",
     tags=["IPO Generation"],
 )
 async def validate_knowledge_base(body: ValidateRequest) -> ValidationResult:
     """
-    Validate all 29 DRHP sections against the current Knowledge Base.
+    Validate all 29 IPO Draft sections against the current Knowledge Base.
 
     Returns:
     - `overall_readiness_pct`: 0–100 percentage
@@ -134,6 +136,18 @@ async def validate_knowledge_base(body: ValidateRequest) -> ValidationResult:
     try:
         engine = ValidationEngine(user_id=body.user_id)
         result = engine.validate_all_sections()
+
+        # Write score back to the project if project_id was provided
+        if body.project_id:
+            try:
+                from app.db.session import get_supabase_admin
+                supabase = get_supabase_admin()
+                supabase.table("projects").update({
+                    "validation_score": int(result.overall_readiness_pct),
+                }).eq("id", body.project_id).execute()
+            except Exception as wb_exc:
+                logger.warning("Failed to write validation_score to project %s: %s", body.project_id, wb_exc)
+
         return result
     except Exception as exc:
         logger.error(f"Validation failed for user {body.user_id}: {exc}", exc_info=True)
@@ -151,7 +165,7 @@ async def validate_knowledge_base(body: ValidateRequest) -> ValidationResult:
 )
 async def generate_section(body: GenerateSectionRequest) -> GenerationResult:
     """
-    Generate (or regenerate) a single DRHP section using LLM + Knowledge Base.
+    Generate (or regenerate) a single IPO Draft section using LLM + Knowledge Base.
 
     - Loads the section template from YAML
     - Validates required fields in the KB
@@ -200,12 +214,12 @@ async def generate_section(body: GenerateSectionRequest) -> GenerationResult:
 @router.post(
     "/generate",
     response_model=GenerationSummaryResponse,
-    summary="Generate complete DRHP draft (all sections)",
+    summary="Generate complete IPO Draft (all sections)",
     tags=["IPO Generation"],
 )
 async def generate_full_draft(body: GenerateAllRequest) -> GenerationSummaryResponse:
     """
-    Generate all 29 DRHP sections (or a specified subset).
+    Generate all 29 IPO Draft sections (or a specified subset).
 
     Sections with MISSING status are included as placeholder sections
     if force=True, otherwise they are returned as MISSING with field details.
@@ -278,7 +292,7 @@ async def download_markdown(body: DownloadRequest) -> Response:
             sections=body.sections,
             company_name=body.company_name or "[Company Name]",
         )
-        filename = f"DRHP_Draft_{body.company_name.replace(' ', '_')}.md"
+        filename = f"IPO_Draft_{body.company_name.replace(' ', '_')}.md"
         return Response(
             content=markdown.encode("utf-8"),
             media_type="text/markdown",
@@ -312,7 +326,7 @@ async def download_docx(body: DownloadRequest) -> Response:
             sections=body.sections,
             company_name=body.company_name or "[Company Name]",
         )
-        filename = f"DRHP_Draft_{body.company_name.replace(' ', '_')}.docx"
+        filename = f"IPO_Draft_{body.company_name.replace(' ', '_')}.docx"
         return Response(
             content=docx_bytes,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -331,6 +345,84 @@ async def download_docx(body: DownloadRequest) -> Response:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"DOCX download failed: {str(exc)}",
+        )
+
+
+@router.post(
+    "/download/pdf",
+    summary="Download generated IPO Draft as PDF",
+    tags=["IPO Generation"],
+    response_class=Response,
+)
+async def download_pdf(body: DownloadRequest) -> Response:
+    """
+    Compose all provided section results into a PDF file using pypdfium2
+    and return it as a downloadable file.
+    """
+    try:
+        composer = DocumentComposer()
+        pdf_bytes = composer.compose_pdf(
+            sections=body.sections,
+            company_name=body.company_name or "[Company Name]",
+        )
+        safe_name = (body.company_name or "IPO_Draft").replace(" ", "_")
+        filename = f"IPO_Draft_{safe_name}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.error(f"PDF download failed: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF download failed: {str(exc)}",
+        )
+
+
+@router.post(
+    "/download/pdf",
+    summary="Download generated IPO Draft as PDF",
+    tags=["IPO Generation"],
+    response_class=Response,
+)
+async def download_pdf(body: DownloadRequest) -> Response:
+    """
+    Compose all provided section results into a PDF file using pypdfium2
+    and return it as a downloadable file.
+    """
+    try:
+        composer = DocumentComposer()
+        pdf_bytes = composer.compose_pdf(
+            sections=body.sections,
+            company_name=body.company_name or "[Company Name]",
+        )
+        safe_name = (body.company_name or "IPO_Draft").replace(" ", "_")
+        filename = f"IPO_Draft_{safe_name}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.error(f"PDF download failed: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF download failed: {str(exc)}",
         )
 
 

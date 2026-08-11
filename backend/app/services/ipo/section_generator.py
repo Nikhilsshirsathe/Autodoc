@@ -231,9 +231,14 @@ class SectionGenerator:
                     if isinstance(field_data, dict):
                         doc_id = field_data.get("source_document_id", "")
                         if doc_id and doc_id not in doc_map:
+                            # Use document name from knowledge data; fall back to doc_id
+                            doc_name = (
+                                field_data.get("source_document_name")
+                                or doc_id
+                            )
                             doc_map[doc_id] = SourceReference(
                                 document_id=doc_id,
-                                document_name=None,
+                                document_name=doc_name,
                                 page_number=field_data.get("page_number"),
                                 field_name=f"{category}.{field_name}",
                                 chunk_ids=[],

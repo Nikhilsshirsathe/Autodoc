@@ -75,9 +75,7 @@ export function TopNav() {
             placeholder="Search projects, documents..."
             className="pl-9 h-8 bg-muted/50 border-transparent focus-visible:bg-background focus-visible:border-input text-sm"
           />
-          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded border border-border">
-            ⌘K
-          </kbd>
+
         </div>
       </div>
 

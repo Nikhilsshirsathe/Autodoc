@@ -1,8 +1,8 @@
 // TODO: Wire to real API — currently uses empty data
 // @ts-nocheck
 "use client";
-import React, { useState } from "react";
-import { UserPlus, Mail, Shield, Trash2, Crown, Eye, Edit, Users } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { UserPlus, Mail, Shield, Trash2, Crown, Eye, Edit, Users, Link2, Copy, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +26,23 @@ export default function CollaborationPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<UserRole>("analyst");
+  const [copied, setCopied] = useState(false);
   const project = null;
   const [members, setMembers] = useState<any[]>([]);
+
+  // Generate a deterministic-looking invite link based on role
+  const shareLink = useMemo(() => {
+    const token = btoa(`invite:${inviteRole}:${Date.now()}`).replace(/=/g, "").slice(0, 24);
+    return `${window.location.origin}/invite/${token}`;
+  }, [inviteRole, inviteOpen]);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Link copied to clipboard");
+    });
+  };
 
   const sendInvite = () => {
     toast.success(`Invitation sent to ${inviteEmail}`);
@@ -119,26 +134,71 @@ export default function CollaborationPage() {
 
       {/* Invite Dialog */}
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-full overflow-hidden">
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+
+            {/* Email */}
             <div className="space-y-1.5">
-              <Label>Email Address</Label>
-              <Input placeholder="colleague@company.com" value={inviteEmail} onChange={(e)=>setInviteEmail(e.target.value)} />
+              <Label className="text-sm">Email Address</Label>
+              <Input
+                placeholder="colleague@company.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="focus-visible:ring-0 focus-visible:border-muted-foreground/40 w-full"
+              />
             </div>
+
+            {/* Role */}
             <div className="space-y-1.5">
-              <Label>Role</Label>
-              <Select value={inviteRole} onValueChange={(v)=>setInviteRole(v as UserRole)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label className="text-sm">Role</Label>
+              <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as UserRole)}>
+                <SelectTrigger className="focus:ring-0 w-full truncate">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {(Object.entries(USER_ROLE_CONFIG) as [UserRole, {label:string;description:string}][]).filter(([r])=>r!=="admin" && r!=="owner").map(([role,cfg])=>(
-                    <SelectItem key={role} value={role}>{cfg.label} — {cfg.description}</SelectItem>
-                  ))}
+                  {(Object.entries(USER_ROLE_CONFIG) as [UserRole, { label: string; description: string }][])
+                    .filter(([r]) => r !== "admin" && r !== "owner")
+                    .map(([role, cfg]) => (
+                      <SelectItem key={role} value={role}>
+                        <span className="font-medium">{cfg.label}</span>
+                        <span className="text-muted-foreground ml-1 text-xs">— {cfg.description}</span>
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Divider */}
+            <Separator />
+
+            {/* Share link */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-foreground">Or share an invite link</p>
+              <div className="flex items-stretch rounded-lg border border-border overflow-hidden">
+                <div className="flex items-center gap-2 flex-1 bg-muted/40 px-3 py-2 overflow-hidden">
+                  <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate block w-0 flex-1">{shareLink}</span>
+                </div>
+                <button
+                  onClick={copyLink}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-muted hover:bg-muted/80 border-l border-border transition-colors shrink-0 text-foreground"
+                >
+                  {copied
+                    ? <><Check className="h-3.5 w-3.5 text-green-500" />Copied!</>
+                    : <><Copy className="h-3.5 w-3.5" />Copy</>
+                  }
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Invitee joins as{" "}
+                <span className="font-semibold text-foreground">{USER_ROLE_CONFIG[inviteRole]?.label}</span>.
+                {" "}Expires in 7 days.
+              </p>
+            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>

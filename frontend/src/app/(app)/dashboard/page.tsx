@@ -5,7 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  FolderKanban, FileUp, ShieldCheck, FileEdit, Sparkles,
+  FolderKanban, FileUp, ShieldCheck, FileEdit,
   MessageSquare, Plus, ArrowUpRight, ArrowRight, Loader2, Building2,
 } from "lucide-react";
 import Link from "next/link";
@@ -118,7 +118,7 @@ export default function DashboardPage() {
       {activeProject && (
         <>
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
             {[
               {
                 label: "Total Projects",
@@ -129,24 +129,10 @@ export default function DashboardPage() {
               },
               {
                 label: "Documents Uploaded",
-                value: activeProject.documents_uploaded,
+                value: documents.length,
                 icon: FileUp,
                 sub: `of ${activeProject.documents_required} required`,
-                trend: `${documents.length} in DB`,
-              },
-              {
-                label: "Validation Score",
-                value: `${activeProject.validation_score}%`,
-                icon: ShieldCheck,
-                sub: cfg ? cfg.label : activeProject.status,
-                trend: "Current run",
-              },
-              {
-                label: "AI Confidence",
-                value: `${activeProject.ai_confidence}%`,
-                icon: Sparkles,
-                sub: activeProject.company_name,
-                trend: "Extraction model",
+                trend: "Live data",
               },
             ].map((s) => (
               <Card key={s.label} className="relative overflow-hidden">

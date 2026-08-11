@@ -21,11 +21,11 @@ export async function getIpoTemplates(): Promise<IpoTemplateMetadata[]> {
   return handleResponse<IpoTemplateMetadata[]>(res);
 }
 
-export async function validateKnowledgeBase(userId: string): Promise<ValidationResult> {
+export async function validateKnowledgeBase(userId: string, projectId?: string): Promise<ValidationResult> {
   const res = await fetch(`${BASE}/validate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, project_id: projectId ?? null }),
   });
   return handleResponse<ValidationResult>(res);
 }
@@ -81,6 +81,23 @@ export async function downloadDocx(params: {
   company_name?: string;
 }): Promise<Blob> {
   const res = await fetch(`${BASE}/download/docx`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `Download failed (${res.status})`);
+  }
+  return res.blob();
+}
+
+export async function downloadPdf(params: {
+  user_id: string;
+  sections: GenerationResult[];
+  company_name?: string;
+}): Promise<Blob> {
+  const res = await fetch(`${BASE}/download/pdf`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),

@@ -143,6 +143,7 @@ class KnowledgeMapper:
                     "value": best.get("field_value", ""),
                     "confidence": best.get("confidence", 0.0),
                     "source_document_id": best.get("document_id", ""),
+                    "source_document_name": (best.get("documents") or {}).get("original_name", ""),
                     "page_number": best.get("page_number"),
                     "field_type": best.get("field_type", "text"),
                 }
@@ -160,6 +161,7 @@ class KnowledgeMapper:
                         "value": row.get("field_value", ""),
                         "confidence": row.get("confidence", 0.0),
                         "source_document_id": row.get("document_id", ""),
+                        "source_document_name": (row.get("documents") or {}).get("original_name", ""),
                         "page_number": row.get("page_number"),
                         "field_type": row.get("field_type", "text"),
                     }

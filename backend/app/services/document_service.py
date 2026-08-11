@@ -46,7 +46,8 @@ class DocumentService:
         """
         1. Upload file to Supabase Storage.
         2. Insert a row in documents table (status='uploaded').
-        3. Return the document row.
+        3. Increment documents_uploaded counter on the linked project.
+        4. Return the document row.
         """
         # Upload to storage
         storage_path = self.storage.upload_file(file_bytes, filename, mime_type, user_id)
@@ -70,6 +71,11 @@ class DocumentService:
         result = self.supabase.table("documents").insert(doc_row).execute()
         if not result.data:
             raise PipelineError("Failed to insert document record")
+
+        # Keep project counter in sync
+        if project_id:
+            self._update_project_doc_count(project_id)
+
         return result.data[0]
 
     # ── Extraction pipeline ───────────────────────────────────────────────────
@@ -204,6 +210,11 @@ class DocumentService:
             "error_message": None,
         }).eq("id", document_id).execute())
 
+        # ── Update project ai_confidence ──────────────────────────────────────
+        project_id = doc.get("project_id")
+        if project_id:
+            self._update_project_ai_confidence(project_id)
+
         return {
             "document_id": document_id,
             "status": "completed",
@@ -260,6 +271,59 @@ class DocumentService:
                 else:
                     raise  # Non-retryable — fail immediately
         raise last_exc
+
+    # ── Project counter helpers ───────────────────────────────────────────────
+
+    def _update_project_doc_count(self, project_id: str) -> None:
+        """Recount documents for a project and write it to projects.documents_uploaded."""
+        try:
+            res = (
+                self.supabase.table("documents")
+                .select("id", count="exact")
+                .eq("project_id", project_id)
+                .execute()
+            )
+            count = res.count or 0
+            self.supabase.table("projects").update({
+                "documents_uploaded": count,
+            }).eq("id", project_id).execute()
+        except Exception as exc:
+            logger.warning("Failed to update documents_uploaded for project %s: %s", project_id, exc)
+
+    def _update_project_ai_confidence(self, project_id: str) -> None:
+        """Average confidence of all extracted fields for this project and write to projects.ai_confidence."""
+        try:
+            # Fetch all document IDs for this project
+            doc_res = (
+                self.supabase.table("documents")
+                .select("id")
+                .eq("project_id", project_id)
+                .execute()
+            )
+            doc_ids = [d["id"] for d in (doc_res.data or [])]
+            if not doc_ids:
+                return
+
+            # Fetch all extracted field confidence values across those documents
+            fields_res = (
+                self.supabase.table("extracted_fields")
+                .select("confidence")
+                .in_("document_id", doc_ids)
+                .execute()
+            )
+            confidences = [
+                f["confidence"] for f in (fields_res.data or [])
+                if f.get("confidence") is not None
+            ]
+            if not confidences:
+                return
+
+            avg_confidence = round(sum(confidences) / len(confidences) * 100)
+            self.supabase.table("projects").update({
+                "ai_confidence": avg_confidence,
+            }).eq("id", project_id).execute()
+        except Exception as exc:
+            logger.warning("Failed to update ai_confidence for project %s: %s", project_id, exc)
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 

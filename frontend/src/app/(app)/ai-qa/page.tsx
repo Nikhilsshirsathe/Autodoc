@@ -342,7 +342,7 @@ export default function AIQAPage() {
       </div>
 
       {/* ══ RIGHT: CHAT PANEL ════════════════════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col min-w-0 rounded-xl border border-border bg-background shadow-sm overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 rounded-xl bg-background shadow-sm overflow-hidden">
 
         {/* Chat toolbar */}
         <div className="flex items-center justify-between h-14 px-5 border-b border-border shrink-0">
@@ -402,7 +402,7 @@ export default function AIQAPage() {
 
         {/* Input bar */}
         <div className="px-5 py-4 border-t border-border shrink-0">
-          <div className="flex items-end gap-3 rounded-xl border border-input bg-muted/30 px-4 py-3 focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20 transition-all">
+          <div className="flex items-end gap-3 rounded-xl bg-muted/50 px-4 py-3 transition-all">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -412,7 +412,7 @@ export default function AIQAPage() {
               onKeyDown={handleKeyDown}
               disabled={sending || (!userId && !authLoading)}
               className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none leading-relaxed disabled:opacity-50 min-h-[24px]"
-              style={{ height: "24px" }}
+              style={{ height: "24px", outline: "none" }}
             />
             <Button
               size="sm"

@@ -141,6 +141,25 @@ export default function LoginPage() {
         </span>
       </div>
 
+      {/* Demo / Judge login */}
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full gap-2 border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-400"
+        disabled={isSubmitting}
+        onClick={async () => {
+          const { error } = await signIn("nikhilshirsathe@gmail.com", "Nikhil@2709");
+          if (error) {
+            toast.error("Demo login failed", { description: error });
+            return;
+          }
+          toast.success("Logged in as Judge demo account");
+          router.push("/dashboard");
+        }}
+      >
+        🏆 Login as Judge
+      </Button>
+
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-foreground font-medium hover:underline">
